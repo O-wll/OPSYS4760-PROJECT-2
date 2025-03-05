@@ -33,3 +33,4 @@ Issues Ran Into:
 - Had trouble with using the simulated structure table.
 - Couldn't test if alarm logic works, theoretically it should.
 - Time constraint
+- Forgetting to update my git/github when making commits.
