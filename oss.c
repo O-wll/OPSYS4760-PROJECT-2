@@ -3,8 +3,11 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/shm.h> // For shared memory
 #include <sys/ipc.h> // Also for shared memory, allows worker class to access shared memory
+
+#define SHM_KEY 854038
 
 // Using a structure for our simulated clock, storing seconds and nanoseconds.
 typedef struct SimulatedClock {
@@ -14,6 +17,45 @@ typedef struct SimulatedClock {
 
 
 int main(int argc, char **argv) {
-	SimulatedClock systemClock = {1, 1000000};
-	printf("%d\n", systemClock.seconds);
+	int shmid = shmget(SHM_KEY, sizeof(SimulatedClock), IPC_CREAT | 0666); // Creating shared memory using shmget. 
+    	
+	if (shmid == -1) { // If shmid is -1 as a result of shmget failing and returning -1, error message will print.
+        	perror("shmget failed");
+        	exit(1);
+    	}
+	
+	SimulatedClock *clock = (SimulatedClock *)shmat(shmid, NULL, 0); // Attach shared memory, clock is now a pointer to SimulatedClock structure.
+	if (clock == (void *)-1) { // if shmat, the attaching shared memory function, fails, it returns an invalid memory address.
+        	perror("shmat failed");
+        	exit(1);
+    	}
+
+    	// Initialize clock
+    	clock->seconds = 1;
+    	clock->nanoseconds = 1000000;
+
+   	pid_t pid = fork(); // Forking, creating new child process.
+    	
+	if (pid < 0) { // If pid fails, return error message.
+        	perror("fork failed");
+        	exit(1);
+    	}
+    	else if (pid == 0) { // Child executes worker
+        	execl("./worker", "worker", (char *)NULL);
+        	perror("execl failed");
+        	exit(1);
+    	}
+
+	wait(NULL); // Wait function 
+
+	// Detach shared memory
+    	if (shmdt(clock) == -1) {
+        	perror("shmdt failed");
+    	}	
+
+    	// Remove shared memory
+    	if (shmctl(shmid, IPC_RMID, NULL) == -1) {
+        	perror("shmctl failed");
+    	}	
 }
+
