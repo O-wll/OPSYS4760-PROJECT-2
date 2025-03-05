@@ -46,7 +46,24 @@ int main(int argc, char **argv) {
     	clock->seconds = 0;
     	clock->nanoseconds = 0;
 
-	incrementClock(clock);
+	incrementClock(clock); // Incrementing clock
+
+	// Grab start time of fork and initialize PCB array index
+	int forkSec = clock->seconds;
+	int forkNano = clock->nanoseconds;
+	int pcbIndex = 0;
+
+	// For loop looks through and finds if any pcb slots are free.
+	for (pcbIndex = 0; pcbIndex < 20; pcbIndex++) {
+		if(!processTable[pcbIndex].occupied) {
+			break;
+		}
+	}
+	
+	// If pcbIndex is at 20, that means that there is a maximum amount of processes.
+	if (pcbIndex = 20) {
+		printf("Max Processes Detected.");
+	}
 
    	pid_t pid = fork(); // Forking, creating new child process.
     	
@@ -58,9 +75,18 @@ int main(int argc, char **argv) {
         	execl("./worker", "worker", (char *)NULL);
         	perror("execl failed");
         	exit(1);
-    	}
+    	} else { // What Parent does
+		processTable[pcbIndex].occupied = 1;
+		processTable[pcbIndex].pid = pid;
+		processTable[pcbIndex].startSeconds = forkSec;
+		processTable[pcbIndex].startNano = forkNano;
+	}
 
 	wait(NULL); // Wait function 
+
+	if (pid > 0) { // Free up occupation of pcb slot, ready for reuse.
+		processTable[pcbIndex].occupied = 0;
+	}
 
 	// Detach shared memory
     	if (shmdt(clock) == -1) {
@@ -70,7 +96,7 @@ int main(int argc, char **argv) {
     	// Remove shared memory
     	if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         	perror("shmctl failed");
-    	}	
+    	}
 	
 	return 0;
 }
