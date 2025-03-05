@@ -22,5 +22,5 @@ worker.o: worker.c
 
 # Clean object files and exe.
 clean:
-	rm -f user.o oss.o oss user
+	rm -f worker.o oss.o oss worker
 
