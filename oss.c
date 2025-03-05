@@ -24,7 +24,7 @@ struct PCB {
 	int startSeconds;
 	int startNano;
 };
-struct PCB processTable[20]; // Table of PCBstruct PCB processTable[MAX_PROCESSES];
+struct PCB processTable[20];
 
 void incrementClock(SimulatedClock *clock);
 
