@@ -27,6 +27,9 @@ struct PCB {
 struct PCB processTable[20];
 
 void incrementClock(SimulatedClock *clock);
+void signalHandler(int sig, int shmid, SimulatedClock* clock);
+void printTable(SimulatedClock *clock);
+void help();
 
 int main(int argc, char **argv) {
 	int shmid = shmget(SHM_KEY, sizeof(SimulatedClock), IPC_CREAT | 0666); // Creating shared memory using shmget. 
@@ -80,6 +83,7 @@ int main(int argc, char **argv) {
 		processTable[pcbIndex].pid = pid;
 		processTable[pcbIndex].startSeconds = forkSec;
 		processTable[pcbIndex].startNano = forkNano;
+		printTable(clock);
 	}
 
 	wait(NULL); // Wait function 
@@ -108,4 +112,29 @@ void incrementClock(SimulatedClock *clock) { // This function simulates the incr
 		clock->seconds++;
 		clock->nanoseconds -= NANO_TO_SEC;	
 	}
+}
+
+void printTable(SimulatedClock *clock) { // This function prints out the info about the 20 processes.
+	printf("\nOSS PID: %d SysClockS: %d SysClockNano: %d\n", getpid(), clock->seconds, clock->nanoseconds);
+	printf("Process Table: \n");
+	printf("Entry \t Occupied \t PID \t StartS \t StartN\n");
+	for (int i = 0; i < 20; i++) {
+		printf("%d \t %d \t %d \t %d \t %d \n", i, processTable[i].occupied, processTable[i].pid, processTable[i].startSeconds, processTable[i].startNano);
+	}
+}
+
+void signalHandler(int sig, int shmid, SimulatedClock* clock) { // This is our signal handler, if 60 real seconds have passed, then kill all child processes and exit.
+	fprintf(stderr, "\n[OSS] Alarm signal caught, killing all children...\n");
+    	
+	for(int i = 0; i < 20 ; i++){
+        	if(processTable[i].occupied) {
+		       	kill(processTable[i].pid,SIGTERM);
+		}
+    	}
+
+    	exit(1);
+}
+
+void help() {
+	printf("Hi");
 }
