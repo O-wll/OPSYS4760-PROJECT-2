@@ -257,7 +257,7 @@ void signalHandler(int sig, int shmid, SimulatedClock* clock) { // This is our s
 }
 
 void help() {
-	printf("This program forks and splits off worker processes. It also controls the simulated clock and each loop, it increments. See below for parameters. \n")
+	printf("This program forks and splits off worker processes. It also controls the simulated clock and each loop, it increments. See below for parameters. \n");
 	printf("Usage: ./oss [-h] [-n proc] [-s simul] [-t timelimit] [-i intervalMs]\n");
     	printf("-h : Show this help message.\n");
     	printf("-n : Total number of child processes to launch.\n");
